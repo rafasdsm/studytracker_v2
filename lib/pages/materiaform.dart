@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 
 class MateriaFormPage extends StatefulWidget {
-  MateriaFormPage({super.key});
+  const MateriaFormPage({super.key});
 
   @override
   State<MateriaFormPage> createState() => _MateriaFormPageState();
@@ -17,6 +17,7 @@ class _MateriaFormPageState extends State<MateriaFormPage> {
 
   @override
   void dispose() {
+    super.dispose();
     _materia.dispose();
     _professor.dispose();
   }
@@ -30,15 +31,15 @@ class _MateriaFormPageState extends State<MateriaFormPage> {
             spacing: 20,
             children: [
               SizedBox(height: 50),
-              inputcontainer("Nome da matéria", _materia),
-              inputcontainer("Nome do professor da matéria", _professor),
-              /////////////////////////
-              //                     //
-              // Trocar por um Ratio //
-              //                     //
-              /////////////////////////
-              inputcontainer("Carga horária (horas)", _cargahoraria), // ratio
-              inputcontainer("Horas pro dia (horas)", _horadiaria), // ratio
+              inputcontainer("Nome da matéria", _materia,TextInputType.text),
+              inputcontainer("Nome do professor da matéria", _professor,TextInputType.name),
+              ///////////////////////////
+              //                       //
+              // Trocar por um Ratio?  //
+              //                       //
+              ///////////////////////////
+              inputcontainer("Carga horária (horas)", _cargahoraria,TextInputType.number), // ratio
+              inputcontainer("Horas pro dia (horas)", _horadiaria,TextInputType.number), // ratio
               Padding(
                 padding: EdgeInsets.only(left: 5, right: 5),
                 child: Wrap(
@@ -66,7 +67,7 @@ class _MateriaFormPageState extends State<MateriaFormPage> {
   }
 
   GestureDetector dayselectbtn(
-    String _dia,
+    String dia,
     int index,
     Color cordodia, {
     Color cor_texto = Colors.white,
@@ -77,6 +78,7 @@ class _MateriaFormPageState extends State<MateriaFormPage> {
         setState(() {
           selected = selected == false ? true : false;
           dias[index - 1] = selected;
+          print("Dias: $dia");
         });
       },
       child: Container(
@@ -87,7 +89,7 @@ class _MateriaFormPageState extends State<MateriaFormPage> {
         child: Padding(
           padding: EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
           child: Text(
-            _dia,
+            dia,
             style: TextStyle(
               color: selected == true ? cor_texto : Colors.black,
               fontWeight: FontWeight.bold,
@@ -98,11 +100,12 @@ class _MateriaFormPageState extends State<MateriaFormPage> {
     );
   }
 
-  Padding inputcontainer(String hint, TextEditingController text_controller) {
+  Padding inputcontainer(String hint, TextEditingController textController, TextInputType inputtype) {
     return Padding(
       padding: EdgeInsets.only(left: 20, right: 20),
       child: TextField(
-        controller: text_controller,
+        keyboardType: inputtype,
+        controller: textController,
         decoration: InputDecoration(
           border: OutlineInputBorder(),
           label: Text(hint),

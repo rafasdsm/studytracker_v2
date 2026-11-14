@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:studytracker_v2/components/bottomappbar.dart';
 
 class MateriaPage extends StatelessWidget {
-  MateriaPage({super.key});
+  const MateriaPage({super.key});
 
   @override
   Widget build(BuildContext context) {
