@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:studytracker_v2/model/localbank.dart';
 import 'pages/materiaform.dart';
 
 void main() {
