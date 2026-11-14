@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:studytracker_v2/pages/home.dart';
+import 'package:studytracker_v2/pages/materiaform.dart';
 
 void main() {
   runApp(MainApp());
@@ -10,8 +10,6 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home:HomePage(),
-    );
+    return MaterialApp(home: MateriaFormPage());
   }
 }

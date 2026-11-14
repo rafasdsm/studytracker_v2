@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:studytracker_v2/components/bottomappbar.dart';
 
-class HomePage extends StatelessWidget {
-  HomePage({super.key});
+class MateriaPage extends StatelessWidget {
+  MateriaPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 252, 248, 242),
+      bottomNavigationBar: CBottomappbar(),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
