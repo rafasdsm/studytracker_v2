@@ -1,45 +1,56 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:studytracker_v2/components/bottomappbar.dart';
+import 'package:studytracker_v2/model/localbank.dart';
+import 'package:studytracker_v2/model/models.dart';
+import 'package:studytracker_v2/pages/materiaform.dart';
 
-class MateriaPage extends StatelessWidget {
-  const MateriaPage({super.key});
+class MateriasPage extends StatelessWidget {
+  MateriasPage({super.key});
+
+  AppSession _appSession = AppSession();
 
   @override
   Widget build(BuildContext context) {
+    List<Padding> _materiasWidget = [];
+    List<Materia> _materiasFromsession = _appSession.materias;
+    if (_materiasFromsession.length > 0) {
+      for (var i in _materiasFromsession) {
+        Icon status = Icon(Icons.abc);
+        if (i.status == Status.aprovado || i.status == Status.cursando) {
+          status = StatusIcon[0];
+        } else if (i.status == Status.perigo_falta ||
+            i.status == Status.perigo_nota) {
+          status = StatusIcon[1];
+        } else if (i.status == Status.reprovado_falta ||
+            i.status == Status.reprovado_nota) {
+          status = StatusIcon[2];
+        }
+        _materiasWidget.add(
+          materiacontainer(
+            i.nome,
+            [i.notas.length > 0 ? i.notas[0].nota : 0, _appSession.notamaxima],
+            [i.faltas, i.limitefalta],
+            status,
+          ),
+        );
+      }
+    }
+
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 252, 248, 242),
       bottomNavigationBar: CBottomappbar(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => MateriaFormPage()),
+          );
+        },
+        child: Icon(Icons.add),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Column(
-            spacing: 20,
-            children: [
-              materiacontainer(
-                "Banco de dados",
-                [9.6, 10],
-                [3, 10],
-                Icon(Icons.check_circle, color: Colors.green),
-              ),
-              materiacontainer(
-                "Banco de dados",
-                [9.6, 10],
-                [3, 10],
-                Icon(Icons.check_circle, color: Colors.green),
-              ),
-              materiacontainer(
-                "Banco de dados",
-                [9.6, 10],
-                [3, 10],
-                Icon(Icons.check_circle, color: Colors.green),
-              ),
-              materiacontainer(
-                "Banco de dados",
-                [9.6, 10],
-                [3, 10],
-                Icon(Icons.check_circle, color: Colors.green),
-              ),
-            ],
-          ),
+          child: Column(spacing: 20, children: _materiasWidget),
         ),
       ),
     );

@@ -89,6 +89,7 @@ class _MateriaFormPageState extends State<MateriaFormPage> {
         - Tem que ter pelo menos um dia atribuido ao curso
         
       */
+      backgroundColor: Color.fromARGB(255, 252, 248, 242),
       appBar: AppBar(
         centerTitle: true,
         title: Container(
