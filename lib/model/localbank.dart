@@ -12,6 +12,7 @@ class AppSession {
 
   double presencaminima = 0.25;
   double notamaxima = 10;
+  int mediaminima = 7;
   
   // Factory constructor that ensures only one instance
   factory AppSession() {

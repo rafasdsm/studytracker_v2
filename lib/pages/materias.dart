@@ -1,117 +1,138 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:studytracker_v2/components/bottomappbar.dart';
 import 'package:studytracker_v2/model/localbank.dart';
 import 'package:studytracker_v2/model/models.dart';
+import 'package:studytracker_v2/pages/materiadetail.dart';
 import 'package:studytracker_v2/pages/materiaform.dart';
 
 class MateriasPage extends StatelessWidget {
   MateriasPage({super.key});
 
-  AppSession _appSession = AppSession();
+  AppSession _session = AppSession();
 
   @override
   Widget build(BuildContext context) {
-    List<Padding> _materiasWidget = [];
-    List<Materia> _materiasFromsession = _appSession.materias;
-    if (_materiasFromsession.length > 0) {
-      for (var i in _materiasFromsession) {
-        Icon status = Icon(Icons.abc);
-        if (i.status == Status.aprovado || i.status == Status.cursando) {
-          status = StatusIcon[0];
-        } else if (i.status == Status.perigo_falta ||
-            i.status == Status.perigo_nota) {
-          status = StatusIcon[1];
-        } else if (i.status == Status.reprovado_falta ||
-            i.status == Status.reprovado_nota) {
-          status = StatusIcon[2];
-        }
-        _materiasWidget.add(
-          materiacontainer(
-            i.nome,
-            [i.notas.length > 0 ? i.notas[0].nota : 0, _appSession.notamaxima],
-            [i.faltas, i.limitefalta],
-            status,
-          ),
-        );
-      }
+    List<GestureDetector> _materiacontainerlist = [];
+
+    for (var materia in _session.materias) {
+      materia.check_status();
+      _materiacontainerlist.add(materiacontainer(context, materia));
     }
 
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 252, 248, 242),
-      bottomNavigationBar: CBottomappbar(),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => MateriaFormPage()),
-          );
-        },
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => MateriaFormPage()),
+        ),
         child: Icon(Icons.add),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Column(spacing: 20, children: _materiasWidget),
+          child: Column(
+            spacing: 30,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: _materiacontainerlist,
+          ),
         ),
       ),
     );
   }
 
-  Padding materiacontainer(
-    String materianome,
-    List<double> nota,
-    List<int> faltas,
-    Icon status,
-  ) {
-    return Padding(
-      padding: EdgeInsets.only(left: 40, right: 40),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: BoxBorder.all(color: Colors.black, width: 1.5),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(15),
-          child: Column(
-            spacing: 10,
-            children: [
-              Text(materianome.toUpperCase(), style: TextStyle(fontSize: 20)),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  spacing: 10,
+  GestureDetector materiacontainer(context, Materia _materia) {
+    _materia.check_status();
+    String _nome = _materia.nome;
+    String _professor = _materia.professor;
+    double nota = _materia.gerar_media();
+    double nota_minima = _materia.media_minima;
+    int falta = _materia.return_falta();
+    int limite_falta = _materia.falta_limite;
+    Icon status_icon = _materia.status_icon;
+    // trata caso o status fique bichado
+    // ReprovadoNota
+    String _status = _materia.status.name;
+    String status = "";
+
+    if (_status == "ReprovadoNota") {
+      status = "Reprovado por nota";
+    } else if (_status == "ReprovadoFalta") {
+      status = "Reprovado por falta";
+    } else if (_status == "PerigoFalta") {
+      status = "Perigo reprovar por falta";
+    } else {
+      status = _status;
+    }
+
+    // se a pessoa passou da média mínima, mostra a média máxima = 10
+    if (nota > nota_minima) {
+      nota_minima = 10;
+    }
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => MateriaDetailPage(_materia)),
+        );
+      },
+      child: Padding(
+        padding: EdgeInsets.only(left: 30, right: 30),
+        child: Container(
+          decoration: BoxDecoration(
+            border: BoxBorder.all(color: Colors.black, width: 1),
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(15),
+            child: Column(
+              children: [
+                Text(_nome, style: TextStyle(fontSize: 18)),
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     Text(
-                      "Média Atual: ${nota[0]}/${nota[1]}",
-                      style: TextStyle(fontSize: 15),
+                      "Nota: $nota/$nota_minima",
+                      style: TextStyle(fontSize: 18),
                     ),
+                    Spacer(),
                     Text(
-                      "Faltas: ${faltas[0]}/${faltas[1]}",
-                      style: TextStyle(fontSize: 15),
+                      "Faltas: $falta/$limite_falta",
+                      style: TextStyle(fontSize: 18),
                     ),
                   ],
                 ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  status,
-                  Text(
-                    "Clique para mais detalhes ->",
-                    style: TextStyle(
-                      color: Colors.deepPurpleAccent,
-                      decoration: TextDecoration.underline,
+                SizedBox(height: 10),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(30),
+                    color: Colors.grey.shade300,
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.all(5),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 10,
+                      children: [
+                        status_icon,
+                        Text("${status}", style: TextStyle(fontSize: 18)),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ],
+                ),
+                SizedBox(height: 10),
+                Center(
+                  child: Text(
+                    "Clique para mais detalhes",
+                    style: TextStyle(
+                      fontSize: 15,
+                      decoration: TextDecoration.underline,
+                      color: Colors.deepPurpleAccent,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

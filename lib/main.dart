@@ -1,5 +1,5 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:studytracker_v2/pages/dashboard.dart';
+import 'package:studytracker_v2/pages/materias.dart';
 
 void main() {
   runApp(MainApp());
@@ -10,6 +10,6 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: Dashboard());
+    return MaterialApp(home: MateriasPage());
   }
 }

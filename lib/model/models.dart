@@ -1,8 +1,9 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:studytracker_v2/model/localbank.dart';
 
-enum TiposNota { Trabalho, Prova }
+DateTime data_atual = DateTime.now();
 
-List<String> diasDaSemana = [
+List<String> diasemananome = [
   "Segunda",
   "Terca",
   "Quarta",
@@ -12,104 +13,168 @@ List<String> diasDaSemana = [
   "Domingo",
 ];
 
-List<Icon> StatusIcon = [
-  Icon(Icons.check_circle,color: Colors.green,),
-  Icon(Icons.priority_high,color: Colors.yellow,),
-  Icon(Icons.warning,color: Colors.red,),
-];
-
-enum Status {
-  aprovado,
-  reprovado_nota,
-  reprovado_falta,
-  perigo_falta,
-  perigo_nota,
-  cursando,
+Map<String, bool> gerar_map() {
+  Map<String, bool> dias = {};
+  for (var i in diasemananome) {
+    dias[i] = false;
+  }
+  return dias;
 }
 
+enum PresencaTipo { Falta, FaltaJustificada, Presente }
+
+enum NotaTipo { Trabalho, Prova }
+
+enum StatusCurso {
+  Cursando,
+  Aprovado,
+  PerigoFalta,
+  ReprovadoNota,
+  ReprovadoFalta,
+}
+
+const List<Icon> StatusIcon = [
+  Icon(Icons.check_circle, color: Colors.green),
+  Icon(Icons.priority_high_rounded, color: Colors.yellow),
+  Icon(Icons.warning_rounded, color: Colors.red),
+];
+
 class Materia {
-  int cargahoraria;
-  int horapordia;
-  String professor;
+  int get id {
+    return AppSession().materias.length + 1;
+  }
+
   String nome;
+  String professor;
 
+  bool concluido;
+
+  int carga_horaria;
+  int carga_diaria;
+
+  StatusCurso status;
+  late Icon status_icon;
+  int presenca_minima;
+  int get falta_limite {
+    if (carga_diaria <= 0) return 0;
+
+    double horasFaltaPermitidas = carga_horaria * (1 - (presenca_minima / 100));
+
+    return (horasFaltaPermitidas / carga_diaria).floor();
+  }
+
+  double media_minima;
+  double media_maxima;
+
+  List<Presenca> presencas;
   List<Nota> notas;
-  List<bool> semana;
-
-  int faltas;
-  int limitefalta;
-
-  Status status;
+  List<bool> diassemana;
 
   double gerar_media() {
-    if (notas.length > 1) {
-      double media = 0;
-      double num = 0;
+    double media = 0;
+    if (notas.length > 2) {
+      double _notas = 0;
+      double pesos = 0;
       for (var i in notas) {
-        num += (i.nota * i.peso);
+        _notas += (i.nota * i.peso);
+        pesos += i.peso;
       }
-      media = num / notas.length;
-      return media;
+      media = _notas / pesos;
+    }
+    return media;
+  }
+
+  int return_presenca() {
+    int presenca = 0;
+    for (var i in presencas) {
+      if (i.tipopresenca == PresencaTipo.Presente) {
+        presenca++;
+      }
+    }
+    return presenca;
+  }
+
+  int return_falta({bool considerar_justificadas = false}) {
+    int falta = 0;
+    for (var i in presencas) {
+      if (considerar_justificadas == false) {
+        if (i.tipopresenca == PresencaTipo.Falta) {
+          falta++;
+        }
+      } else {
+        if (i.tipopresenca == PresencaTipo.Falta ||
+            i.tipopresenca == PresencaTipo.FaltaJustificada) {
+          falta++;
+        }
+      }
+    }
+    return falta;
+  }
+
+  void check_status() {
+    if (presencas.isNotEmpty && notas.isNotEmpty) {
+      double media = gerar_media();
+      int faltas = return_falta();
+      if (media < media_minima) {
+        status = StatusCurso.ReprovadoNota;
+        status_icon = StatusIcon[2];
+      } else if (faltas > falta_limite) {
+        status = StatusCurso.ReprovadoFalta;
+        status_icon = StatusIcon[2];
+      } else if (faltas == falta_limite) {
+        status = StatusCurso.PerigoFalta;
+        status_icon = StatusIcon[1];
+      } else {
+        status = StatusCurso.Aprovado;
+        status_icon = StatusIcon[0];
+      }
     } else {
-      return 0;
+      status = StatusCurso.Cursando;
+      status_icon = StatusIcon[0];
     }
-  }
-
-  List<String> dias_da_semana_por_nome() {
-    int cont = 0;
-    List<String> _diadasemana = [];
-    for (var i in semana) {
-      if (i == true) {
-        _diadasemana.add(diasDaSemana[cont]);
-      }
-      cont++;
-    }
-    return _diadasemana;
-  }
-
-  Map<String, dynamic> to_map() => {
-    "nome": nome,
-    "professor": professor,
-    "cargahoraria": cargahoraria,
-    "horapordia": horapordia,
-    "dia_semana": dias_da_semana_por_nome(),
-    "notas": notas,
-  };
-
-  void gerar_status(double mediaminima, int limitefalta) {
-    double mediaatual = gerar_media();
-    if (faltas > limitefalta) {
-      status = Status.reprovado_falta;
-    } else if (mediaatual < mediaminima) {
-      status = Status.reprovado_nota;
-    }
-  }
-
-  void gerar_limitefaltas(double presencaminima) {
-    limitefalta = (cargahoraria * presencaminima).floor();
   }
 
   Materia({
-    required this.cargahoraria,
-    required this.horapordia,
-    required this.professor,
     required this.nome,
-    required this.semana,
+    required this.professor,
+    required this.carga_diaria,
+    required this.carga_horaria,
+    required this.diassemana,
+    this.media_maxima = 10,
+    this.media_minima = 7,
+    this.presenca_minima = 75,
+    this.status = StatusCurso.Cursando,
+    this.presencas = const [],
+    this.concluido = false,
     this.notas = const [],
-    this.faltas = 0,
-    this.limitefalta = 0,
-    this.status = Status.cursando,
-  });
+  }) {
+    status_icon = StatusIcon[0];
+  }
+}
+
+class Presenca {
+  int materia_id;
+  PresencaTipo tipopresenca;
+  late DateTime datapresenca;
+  Presenca({required this.materia_id, required this.tipopresenca}) {
+    datapresenca = data_atual;
+  }
 }
 
 class Nota {
+  int materia_id;
+  NotaTipo tiponota;
   double nota;
+  String nomenota;
   int peso;
-  NotaTipo tipo;
-  Nota({required this.nota, required this.peso, required this.tipo});
-}
-
-class NotaTipo {
-  TiposNota tipodanota;
-  NotaTipo({required this.tipodanota});
+  late DateTime datanota;
+  Nota({
+    required this.materia_id,
+    required this.tiponota,
+    required this.nomenota,
+    required this.nota,
+    this.peso = 1,
+  }) {
+    datanota = data_atual;
+  }
 }
