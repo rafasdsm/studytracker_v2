@@ -86,7 +86,8 @@ class MateriasPage extends StatelessWidget {
             padding: EdgeInsets.all(15),
             child: Column(
               children: [
-                Text(_nome, style: TextStyle(fontSize: 18)),
+                Text(_nome, style: TextStyle(fontSize: 20)),
+                Text(_professor, style: TextStyle(fontSize: 15)),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [

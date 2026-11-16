@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:studytracker_v2/model/models.dart';
 
@@ -44,9 +45,20 @@ class MateriaDetailPage extends StatelessWidget {
     _presencalist = generate_presenca();
     return Scaffold(
       appBar: AppBar(title: Text(_materia.nome), centerTitle: true),
-      floatingActionButton: FloatingActionButton(
-        onPressed: null,
-        child: Icon(Icons.edit),
+      floatingActionButton: SpeedDial(
+        children: [
+          SpeedDialChild(
+            label: "Adicionar Nota",
+            child: Icon(Icons.grade, color: Colors.white),
+            backgroundColor: Colors.yellow,
+          ),
+          SpeedDialChild(
+            label: "Adicionar Falta",
+            child: Icon(Icons.calendar_month, color: Colors.white),
+            backgroundColor: Colors.purple,
+          ),
+        ],
+        child: Icon(Icons.more_vert),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -63,7 +75,10 @@ class MateriaDetailPage extends StatelessWidget {
               children: [
                 // Container da média
                 containergrid("Média Atual", _materia.gerar_media().toString()),
-                containergrid("Faltas", _materia.return_falta().toString()),
+                containergrid(
+                  "Faltas",
+                  "${_materia.return_falta().toString()}/${_materia.falta_limite}",
+                ),
                 containergrid(
                   "Presenças",
                   _materia.return_presenca().toString(),
@@ -104,6 +119,7 @@ class MateriaDetailPage extends StatelessWidget {
                       decoration: BoxDecoration(
                         border: BoxBorder.all(color: Colors.black),
                         borderRadius: BorderRadius.circular(30),
+                        color: Colors.white,
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -177,6 +193,7 @@ class MateriaDetailPage extends StatelessWidget {
       decoration: BoxDecoration(
         border: BoxBorder.all(color: Colors.black),
         borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
       ),
       child: Padding(
         padding: EdgeInsets.all(20),
