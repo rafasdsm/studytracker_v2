@@ -64,7 +64,7 @@ class MateriasPage extends StatelessWidget {
     }
 
     // se a pessoa passou da média mínima, mostra a média máxima = 10
-    if (nota > nota_minima) {
+    if (nota >= nota_minima) {
       nota_minima = 10;
     }
 

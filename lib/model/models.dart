@@ -55,13 +55,7 @@ class Materia {
   StatusCurso status;
   late Icon status_icon;
   int presenca_minima;
-  int get falta_limite {
-    if (carga_diaria <= 0) return 0;
-
-    double horasFaltaPermitidas = carga_horaria * (1 - (presenca_minima / 100));
-
-    return (horasFaltaPermitidas / carga_diaria).floor();
-  }
+  int falta_limite = 0;
 
   double media_minima;
   double media_maxima;
@@ -70,16 +64,26 @@ class Materia {
   List<Nota> notas;
   List<bool> diassemana;
 
+  void gerar_limitefalta() {
+    if (carga_diaria <= 0) {
+      falta_limite = 0;
+      return;
+    }
+    int total_dia = carga_horaria ~/ carga_diaria;
+    double percentual_falta = (100 - presenca_minima) / 100;
+    falta_limite = (total_dia * percentual_falta).floor();
+  }
+
   double gerar_media() {
-    double media = 0;
-    if (notas.length > 2) {
+    double media = notas[0].nota;
+    if (notas.length >= 2) {
       double _notas = 0;
       double pesos = 0;
       for (var i in notas) {
         _notas += (i.nota * i.peso);
         pesos += i.peso;
       }
-      media = _notas / pesos;
+      media = (_notas / pesos).roundToDouble();
     }
     return media;
   }
@@ -113,7 +117,7 @@ class Materia {
 
   void check_status() {
     if (presencas.isNotEmpty && notas.isNotEmpty) {
-      double media = gerar_media();
+      double media = gerar_media().roundToDouble();
       int faltas = return_falta();
       if (media < media_minima) {
         status = StatusCurso.ReprovadoNota;
@@ -121,10 +125,12 @@ class Materia {
       } else if (faltas > falta_limite) {
         status = StatusCurso.ReprovadoFalta;
         status_icon = StatusIcon[2];
-      } else if (faltas == falta_limite) {
+      } else if (faltas == falta_limite - 1) {
         status = StatusCurso.PerigoFalta;
         status_icon = StatusIcon[1];
-      } else {
+      } else if (concluido == true &&
+          media >= media_minima &&
+          faltas <= falta_limite) {
         status = StatusCurso.Aprovado;
         status_icon = StatusIcon[0];
       }
@@ -140,6 +146,7 @@ class Materia {
     required this.carga_diaria,
     required this.carga_horaria,
     required this.diassemana,
+    this.falta_limite = 0,
     this.media_maxima = 10,
     this.media_minima = 7,
     this.presenca_minima = 75,
@@ -149,16 +156,19 @@ class Materia {
     this.notas = const [],
   }) {
     status_icon = StatusIcon[0];
+    gerar_limitefalta();
   }
 }
 
 class Presenca {
   int materia_id;
   PresencaTipo tipopresenca;
-  late DateTime datapresenca;
-  Presenca({required this.materia_id, required this.tipopresenca}) {
-    datapresenca = data_atual;
-  }
+  DateTime datapresenca;
+  Presenca({
+    required this.materia_id,
+    required this.tipopresenca,
+    required this.datapresenca,
+  });
 }
 
 class Nota {
